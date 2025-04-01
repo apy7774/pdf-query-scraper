@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Vibe-coded scraper
 
 ## Project info
 

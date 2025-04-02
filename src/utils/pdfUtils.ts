@@ -1,14 +1,45 @@
 
 import { SearchResult } from "@/types/types";
 import { toast } from "sonner";
+import { searchPDFsAPI } from "@/services/api";
 
-// This is a mock function that simulates searching PDFs
-// In a real implementation, this would connect to a backend service
+/**
+ * Search PDFs using the backend API
+ * Falls back to mock data if API_USE_MOCK_DATA environment variable is set
+ */
 export const searchPDFs = async (query: string): Promise<SearchResult[]> => {
-  // Simulate network request
+  // Check if we should use mock data (for development/testing)
+  const useMockData = process.env.NODE_ENV === 'development' && 
+                      (process.env.VITE_USE_MOCK_DATA === 'true' || !process.env.VITE_API_BASE_URL);
+  
+  try {
+    if (useMockData) {
+      // Use mock data for development/testing
+      return await getMockSearchResults(query);
+    } else {
+      // Use real API for production
+      const results = await searchPDFsAPI(query);
+      
+      if (results.length > 0) {
+        toast.success("Search completed successfully");
+      } else {
+        toast.info("No results found");
+      }
+      
+      return results;
+    }
+  } catch (error) {
+    console.error("Error searching PDFs:", error);
+    return [];
+  }
+};
+
+// This function handles mock data for development/testing purposes
+const getMockSearchResults = async (query: string): Promise<SearchResult[]> => {
+  // Simulate network request delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  toast.success("Search completed successfully");
+  toast.success("Search completed successfully (mock data)");
   
   // Check if query contains key terms to return different mock results
   const lowerQuery = query.toLowerCase();

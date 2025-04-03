@@ -8,16 +8,20 @@ const API_BASE_URL = config.api.baseUrl;
 /**
  * Search PDFs through the backend API
  * @param query Search query string
+ * @param site Optional specific ICB site to search
  * @returns Promise with search results
  */
-export const searchPDFsAPI = async (query: string): Promise<SearchResult[]> => {
+export const searchPDFsAPI = async (query: string, site?: string): Promise<SearchResult[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/search`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ 
+        query,
+        site
+      }),
     });
 
     if (!response.ok) {

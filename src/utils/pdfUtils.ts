@@ -2,12 +2,15 @@
 import { SearchResult } from "@/types/types";
 import { toast } from "sonner";
 import { searchPDFsAPI } from "@/services/api";
+import { icbSites } from "@/data/icbSites";
 
 /**
  * Search PDFs using the backend API
  * Falls back to mock data if API_USE_MOCK_DATA environment variable is set
+ * @param query Search query string
+ * @param site Optional specific ICB site to search
  */
-export const searchPDFs = async (query: string): Promise<SearchResult[]> => {
+export const searchPDFs = async (query: string, site?: string): Promise<SearchResult[]> => {
   // Check if we should use mock data (for development/testing)
   const useMockData = process.env.NODE_ENV === 'development' && 
                       (process.env.VITE_USE_MOCK_DATA === 'true' || !process.env.VITE_API_BASE_URL);
@@ -15,10 +18,10 @@ export const searchPDFs = async (query: string): Promise<SearchResult[]> => {
   try {
     if (useMockData) {
       // Use mock data for development/testing
-      return await getMockSearchResults(query);
+      return await getMockSearchResults(query, site);
     } else {
       // Use real API for production
-      const results = await searchPDFsAPI(query);
+      const results = await searchPDFsAPI(query, site);
       
       if (results.length > 0) {
         toast.success("Search completed successfully");
@@ -35,30 +38,60 @@ export const searchPDFs = async (query: string): Promise<SearchResult[]> => {
 };
 
 // This function handles mock data for development/testing purposes
-const getMockSearchResults = async (query: string): Promise<SearchResult[]> => {
+const getMockSearchResults = async (query: string, site?: string): Promise<SearchResult[]> => {
   // Simulate network request delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
   toast.success("Search completed successfully (mock data)");
   
+  // Get all mock results based on query
+  let results: SearchResult[] = [];
+  
   // Check if query contains key terms to return different mock results
   const lowerQuery = query.toLowerCase();
   
   if (lowerQuery.includes("pathology") && lowerQuery.includes("nhs")) {
-    return mockNHSPathologyResults;
+    results = [...mockNHSPathologyResults];
   } else if (lowerQuery.includes("climate") || lowerQuery.includes("environment")) {
-    return mockClimateResults;
+    results = [...mockClimateResults];
   } else if (lowerQuery.includes("finance") || lowerQuery.includes("budget")) {
-    return mockFinanceResults;
+    results = [...mockFinanceResults];
+  } else {
+    // Return a subset of general results
+    if (Math.random() > 0.8) {
+      results = [];
+    } else {
+      results = [...mockGeneralResults.slice(0, Math.floor(Math.random() * 5) + 1)];
+    }
   }
   
-  // Return empty results if no matches
-  if (Math.random() > 0.8) {
-    return [];
+  // If a specific site is selected, filter results to only that site
+  // For mock data, we'll simulate this by associating results with random ICB sites
+  if (site) {
+    // First, ensure each result has a site assigned (for mock data purposes)
+    results = results.map(result => {
+      if (!result.source.includes('ICB')) {
+        const randomSite = icbSites[Math.floor(Math.random() * icbSites.length)];
+        return { 
+          ...result, 
+          source: randomSite.name,
+          url: `${randomSite.url}/documents/${result.title.toLowerCase().replace(/\s+/g, '-')}.pdf`
+        };
+      }
+      return result;
+    });
+    
+    // Now filter by the selected site
+    const selectedSite = icbSites.find(s => s.url === site);
+    if (selectedSite) {
+      results = results.filter(result => 
+        result.source.includes(selectedSite.name) || 
+        result.url.startsWith(selectedSite.url)
+      );
+    }
   }
   
-  // Return a subset of general results
-  return mockGeneralResults.slice(0, Math.floor(Math.random() * 5) + 1);
+  return results;
 };
 
 // Mock data - In a real app, this would come from a backend

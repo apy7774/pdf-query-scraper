@@ -3,18 +3,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, Globe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { icbSites } from "@/data/icbSites";
 
 interface SearchBarProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: string, selectedSite?: string) => void;
 }
 
 const SearchBar = ({ onSearch }: SearchBarProps) => {
   const [query, setQuery] = useState("");
+  const [selectedSite, setSelectedSite] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      onSearch(query.trim());
+      onSearch(query.trim(), selectedSite);
     }
   };
 
@@ -29,14 +32,14 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
     <div className="w-full bg-white rounded-lg shadow-sm p-4 md:p-6">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="space-y-2">
-          <h2 className="text-xl font-medium">Search PDF Documents</h2>
+          <h2 className="text-xl font-medium">NHS ICB Info Searcher</h2>
           <p className="text-sm text-gray-500">
-            Enter a query to search for specific content within PDF documents. 
+            Search for specific content across NHS Integrated Care Board (ICB) websites.
             For example: "find mentions of pathology in NHS ICB minutes"
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col md:flex-row gap-2">
           <div className="relative flex-grow">
             <Input
               type="text"
@@ -47,13 +50,30 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
             />
             <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           </div>
+          
+          <div className="w-full md:w-72">
+            <Select value={selectedSite} onValueChange={setSelectedSite}>
+              <SelectTrigger className="h-12 bg-gray-50 border-gray-200">
+                <SelectValue placeholder="All ICB Sites" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All ICB Sites</SelectItem>
+                {icbSites.map((site) => (
+                  <SelectItem key={site.url} value={site.url}>
+                    {site.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
           <div className="flex gap-2">
             <Button 
               type="submit" 
               className="h-12 px-6 bg-blue-700 hover:bg-blue-800"
               disabled={!query.trim()}
             >
-              Search PDFs
+              Search ICBs
             </Button>
             <Button 
               type="button" 
@@ -68,7 +88,7 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
         </div>
         
         <div className="text-xs text-gray-500">
-          Tip: Be specific with your search terms for better results. Use the Google search button to search the web for the same query.
+          Tip: Be specific with your search terms for better results. You can filter your search to a specific ICB site using the dropdown menu.
         </div>
       </form>
     </div>

@@ -12,5 +12,6 @@ export const config = {
   // Feature flags
   features: {
     enableAdvancedSearch: import.meta.env.VITE_ENABLE_ADVANCED_SEARCH === 'true',
+    enableGoogleSearch: true,
   }
 };

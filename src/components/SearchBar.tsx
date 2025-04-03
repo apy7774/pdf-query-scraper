@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, Globe } from "lucide-react";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -15,6 +15,13 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
     e.preventDefault();
     if (query.trim()) {
       onSearch(query.trim());
+    }
+  };
+
+  const handleGoogleSearch = () => {
+    if (query.trim()) {
+      // Open Google search in a new tab
+      window.open(`https://www.google.com/search?q=${encodeURIComponent(query.trim())}`, '_blank');
     }
   };
 
@@ -40,17 +47,28 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
             />
             <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           </div>
-          <Button 
-            type="submit" 
-            className="h-12 px-6 bg-blue-700 hover:bg-blue-800"
-            disabled={!query.trim()}
-          >
-            Search
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              type="submit" 
+              className="h-12 px-6 bg-blue-700 hover:bg-blue-800"
+              disabled={!query.trim()}
+            >
+              Search PDFs
+            </Button>
+            <Button 
+              type="button" 
+              className="h-12 px-4 bg-green-600 hover:bg-green-700"
+              disabled={!query.trim()}
+              onClick={handleGoogleSearch}
+            >
+              <Globe className="mr-2" size={18} />
+              Google
+            </Button>
+          </div>
         </div>
         
         <div className="text-xs text-gray-500">
-          Tip: Be specific with your search terms for better results.
+          Tip: Be specific with your search terms for better results. Use the Google search button to search the web for the same query.
         </div>
       </form>
     </div>

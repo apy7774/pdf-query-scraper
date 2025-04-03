@@ -38,3 +38,14 @@ export const searchPDFsAPI = async (query: string): Promise<SearchResult[]> => {
     throw error;
   }
 };
+
+/**
+ * Opens a Google search for the provided query in a new tab
+ * @param query Search query string
+ */
+export const openGoogleSearch = (query: string): void => {
+  if (!query.trim()) return;
+  
+  const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(query.trim())}`;
+  window.open(googleSearchUrl, '_blank');
+};

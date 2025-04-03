@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SearchIcon, Globe } from "lucide-react";
+import { SearchIcon, Globe, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { icbSites } from "@/data/icbSites";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SearchBarProps {
   onSearch: (query: string, selectedSite?: string) => void;
@@ -13,6 +14,7 @@ interface SearchBarProps {
 const SearchBar = ({ onSearch }: SearchBarProps) => {
   const [query, setQuery] = useState("");
   const [selectedSite, setSelectedSite] = useState<string>("all");
+  const [showAlert, setShowAlert] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +33,21 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
 
   return (
     <div className="w-full bg-white rounded-lg shadow-sm p-4 md:p-6">
+      {showAlert && (
+        <Alert className="mb-4 bg-blue-50 border-blue-100">
+          <AlertCircle className="h-4 w-4 text-blue-700" />
+          <AlertDescription className="text-blue-700">
+            This tool searches across NHS ICB websites. For best results, use specific terms and filter by site if needed.
+            <button 
+              className="ml-2 text-blue-800 font-medium underline"
+              onClick={() => setShowAlert(false)}
+            >
+              Dismiss
+            </button>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="space-y-2">
           <h2 className="text-xl font-medium">NHS ICB Info Searcher</h2>

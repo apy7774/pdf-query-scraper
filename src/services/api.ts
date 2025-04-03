@@ -3,7 +3,7 @@ import { SearchResult } from "@/types/types";
 import { toast } from "sonner";
 import { config } from "@/config/config";
 
-const API_BASE_URL = config.api.baseUrl;
+const API_BASE_URL = config.api.baseUrl || "https://api.web-scrape-search.dev"; // Fallback to a default API endpoint
 
 /**
  * Search PDFs through the backend API
@@ -13,14 +13,16 @@ const API_BASE_URL = config.api.baseUrl;
  */
 export const searchPDFsAPI = async (query: string, site?: string): Promise<SearchResult[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/search`, {
+    // Use real search API
+    const response = await fetch(`${API_BASE_URL}/api/search-icb`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ 
         query,
-        site
+        site,
+        maxResults: 20 // Limit the number of results to improve performance
       }),
     });
 
@@ -52,4 +54,40 @@ export const openGoogleSearch = (query: string): void => {
   
   const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(query.trim())}`;
   window.open(googleSearchUrl, '_blank');
+};
+
+/**
+ * Fallback local search function that searches using Google site: operator
+ * @param query Search query string
+ * @param site Optional specific ICB site to search
+ * @returns Promise with search results
+ */
+export const fallbackSearchUsingGoogle = async (query: string, site?: string): Promise<SearchResult[]> => {
+  try {
+    let searchQuery = query;
+    
+    // If a specific site is provided, use Google's site: operator
+    if (site) {
+      searchQuery = `site:${site} ${query}`;
+    } else {
+      // Search across all ICB sites with a combination of OR operators
+      const siteQueries = [
+        "site:bedfordshirelutonandmiltonkeynes.icb.nhs.uk",
+        "site:cpics.org.uk",
+        "site:hertsandwestessex.ics.nhs.uk",
+        // Add more sites as needed from your list
+      ].join(" OR ");
+      
+      searchQuery = `(${siteQueries}) ${query}`;
+    }
+    
+    // Open Google search in a new tab
+    openGoogleSearch(searchQuery);
+    
+    // Return empty results since we're just redirecting to Google
+    return [];
+  } catch (error) {
+    console.error("Error in fallback search:", error);
+    return [];
+  }
 };

@@ -1,7 +1,7 @@
 
 import { SearchResult } from "@/types/types";
 import { toast } from "sonner";
-import { searchPDFsAPI } from "@/services/api";
+import { searchPDFsAPI, fallbackSearchUsingGoogle } from "@/services/api";
 import { icbSites } from "@/data/icbSites";
 
 /**
@@ -21,15 +21,24 @@ export const searchPDFs = async (query: string, site?: string): Promise<SearchRe
       return await getMockSearchResults(query, site);
     } else {
       // Use real API for production
-      const results = await searchPDFsAPI(query, site);
-      
-      if (results.length > 0) {
-        toast.success("Search completed successfully");
-      } else {
-        toast.info("No results found");
+      try {
+        // First try the main API
+        const results = await searchPDFsAPI(query, site);
+        
+        if (results.length > 0) {
+          toast.success("Search completed successfully");
+        } else {
+          toast.info("No results found");
+        }
+        
+        return results;
+      } catch (error) {
+        console.error("Error using primary search API:", error);
+        
+        // If main API fails, use the fallback Google search method
+        toast.info("Using fallback search method via Google...");
+        return await fallbackSearchUsingGoogle(query, site);
       }
-      
-      return results;
     }
   } catch (error) {
     console.error("Error searching PDFs:", error);

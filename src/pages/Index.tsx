@@ -11,15 +11,16 @@ const Index = () => {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
-  const [selectedSite, setSelectedSite] = useState<string>("");
+  const [selectedSites, setSelectedSites] = useState<string[]>([]);
 
-  const handleSearch = async (searchQuery: string, site?: string) => {
+  const handleSearch = async (searchQuery: string, sites?: string[]) => {
     setIsLoading(true);
     setQuery(searchQuery);
-    setSelectedSite(site || "");
+    setSelectedSites(sites || []);
     
     try {
-      const searchResults = await searchPDFs(searchQuery, site);
+      // If sites array is provided, we search in those sites, otherwise search all
+      const searchResults = await searchPDFs(searchQuery, sites);
       setResults(searchResults);
     } catch (error) {
       console.error("Error searching PDFs:", error);
@@ -28,11 +29,16 @@ const Index = () => {
     }
   };
 
-  // Get the name of the selected site for display
-  const getSelectedSiteName = () => {
-    if (!selectedSite) return "";
-    const site = icbSites.find(s => s.url === selectedSite);
-    return site ? site.name : "";
+  // Get the names of the selected sites for display
+  const getSelectedSitesDescription = () => {
+    if (selectedSites.length === 0) return "";
+    
+    if (selectedSites.length === 1) {
+      const site = icbSites.find(s => s.url === selectedSites[0]);
+      return site ? ` in ${site.name}` : "";
+    }
+    
+    return ` in ${selectedSites.length} selected sites`;
   };
 
   return (
@@ -60,7 +66,7 @@ const Index = () => {
                 <h2 className="text-xl font-semibold text-gray-800">
                   {results.length === 0 
                     ? "No results found" 
-                    : `Found ${results.length} results for "${query}"${selectedSite ? ` in ${getSelectedSiteName()}` : ''}`}
+                    : `Found ${results.length} results for "${query}"${getSelectedSitesDescription()}`}
                 </h2>
               </div>
             )}

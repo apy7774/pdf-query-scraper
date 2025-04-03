@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SearchIcon, Globe, AlertCircle } from "lucide-react";
+import { SearchIcon, Globe, AlertCircle, Check, X } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -13,17 +13,24 @@ import {
   SelectLabel,
   SelectSeparator
 } from "@/components/ui/select";
-import { icbSites, getICBSitesByRegion } from "@/data/icbSites";
+import { Checkbox } from "@/components/ui/checkbox";
+import { icbSites, getICBSitesByRegion, ICBSite } from "@/data/icbSites";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface SearchBarProps {
-  onSearch: (query: string, selectedSite?: string) => void;
+  onSearch: (query: string, selectedSites?: string[]) => void;
 }
 
 const SearchBar = ({ onSearch }: SearchBarProps) => {
   const [query, setQuery] = useState("");
-  const [selectedSite, setSelectedSite] = useState<string>("all");
+  const [selectedSites, setSelectedSites] = useState<string[]>([]);
   const [showAlert, setShowAlert] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const sitesByRegion = getICBSitesByRegion();
   const regions = Object.keys(sitesByRegion);
@@ -31,8 +38,7 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      // Pass empty string when "all" is selected
-      onSearch(query.trim(), selectedSite === "all" ? "" : selectedSite);
+      onSearch(query.trim(), selectedSites.length > 0 ? selectedSites : undefined);
     }
   };
 
@@ -41,6 +47,31 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
       // Open Google search in a new tab
       window.open(`https://www.google.com/search?q=${encodeURIComponent(query.trim())}`, '_blank');
     }
+  };
+
+  const handleSiteToggle = (siteUrl: string) => {
+    setSelectedSites(prev => {
+      if (prev.includes(siteUrl)) {
+        return prev.filter(url => url !== siteUrl);
+      } else {
+        return [...prev, siteUrl];
+      }
+    });
+  };
+
+  const clearSelections = () => {
+    setSelectedSites([]);
+  };
+
+  const getSelectedSitesLabel = () => {
+    if (selectedSites.length === 0) {
+      return "All ICB Sites";
+    }
+    if (selectedSites.length === 1) {
+      const site = icbSites.find(site => site.url === selectedSites[0]);
+      return site ? site.name : "1 site selected";
+    }
+    return `${selectedSites.length} sites selected`;
   };
 
   return (
@@ -82,27 +113,78 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
           </div>
           
           <div className="w-full md:w-72">
-            <Select value={selectedSite} onValueChange={setSelectedSite}>
-              <SelectTrigger className="h-12 bg-gray-50 border-gray-200">
-                <SelectValue placeholder="All ICB Sites" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                <SelectItem value="all">All ICB Sites</SelectItem>
-                <SelectSeparator />
-                
-                {regions.map((region) => (
-                  <SelectGroup key={region}>
-                    <SelectLabel>{region}</SelectLabel>
-                    {sitesByRegion[region].map((site) => (
-                      <SelectItem key={site.url} value={site.url}>
-                        {site.name}
-                      </SelectItem>
-                    ))}
-                    {region !== regions[regions.length - 1] && <SelectSeparator />}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full h-12 bg-gray-50 border-gray-200 justify-between font-normal">
+                  <span className="text-sm truncate">{getSelectedSitesLabel()}</span>
+                  <div className="flex items-center">
+                    {selectedSites.length > 0 && (
+                      <Button 
+                        type="button"
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-1 mr-1 hover:bg-gray-200"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          clearSelections();
+                        }}
+                      >
+                        <X size={16} />
+                      </Button>
+                    )}
+                    <SearchIcon className="ml-2 h-4 w-4" />
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-72 max-h-[400px] overflow-auto p-0">
+                <div className="p-2">
+                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-md mb-2">
+                    <span className="font-medium">Select sites</span>
+                    {selectedSites.length > 0 && (
+                      <Button 
+                        type="button"
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 px-2 text-xs"
+                        onClick={clearSelections}
+                      >
+                        Clear all
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {regions.map((region) => (
+                    <div key={region} className="mb-3">
+                      <div className="text-sm font-semibold px-2 py-1.5 bg-gray-50 rounded">
+                        {region}
+                      </div>
+                      <div className="mt-1">
+                        {sitesByRegion[region].map((site) => (
+                          <div 
+                            key={site.url} 
+                            className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 rounded-md cursor-pointer"
+                            onClick={() => handleSiteToggle(site.url)}
+                          >
+                            <Checkbox 
+                              id={`site-${site.url}`}
+                              checked={selectedSites.includes(site.url)}
+                              onCheckedChange={() => handleSiteToggle(site.url)}
+                              className="h-4 w-4 rounded-sm" 
+                            />
+                            <label 
+                              htmlFor={`site-${site.url}`}
+                              className="text-sm flex-grow cursor-pointer"
+                            >
+                              {site.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
           <div className="flex gap-2">
@@ -126,7 +208,7 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
         </div>
         
         <div className="text-xs text-gray-500">
-          Tip: Be specific with your search terms for better results. You can filter your search to a specific ICB site using the dropdown menu.
+          Tip: Be specific with your search terms for better results. You can filter your search to specific ICB sites using the dropdown menu.
         </div>
       </form>
     </div>

@@ -12,12 +12,13 @@ interface SearchBarProps {
 
 const SearchBar = ({ onSearch }: SearchBarProps) => {
   const [query, setQuery] = useState("");
-  const [selectedSite, setSelectedSite] = useState<string>("");
+  const [selectedSite, setSelectedSite] = useState<string>("all");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      onSearch(query.trim(), selectedSite);
+      // Pass empty string when "all" is selected
+      onSearch(query.trim(), selectedSite === "all" ? "" : selectedSite);
     }
   };
 
@@ -57,7 +58,7 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
                 <SelectValue placeholder="All ICB Sites" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All ICB Sites</SelectItem>
+                <SelectItem value="all">All ICB Sites</SelectItem>
                 {icbSites.map((site) => (
                   <SelectItem key={site.url} value={site.url}>
                     {site.name}

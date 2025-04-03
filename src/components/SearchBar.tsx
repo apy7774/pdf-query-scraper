@@ -3,8 +3,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, Globe, AlertCircle } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { icbSites } from "@/data/icbSites";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator
+} from "@/components/ui/select";
+import { icbSites, getICBSitesByRegion } from "@/data/icbSites";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SearchBarProps {
@@ -15,6 +24,9 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
   const [query, setQuery] = useState("");
   const [selectedSite, setSelectedSite] = useState<string>("all");
   const [showAlert, setShowAlert] = useState(true);
+
+  const sitesByRegion = getICBSitesByRegion();
+  const regions = Object.keys(sitesByRegion);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,12 +86,20 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
               <SelectTrigger className="h-12 bg-gray-50 border-gray-200">
                 <SelectValue placeholder="All ICB Sites" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[300px]">
                 <SelectItem value="all">All ICB Sites</SelectItem>
-                {icbSites.map((site) => (
-                  <SelectItem key={site.url} value={site.url}>
-                    {site.name}
-                  </SelectItem>
+                <SelectSeparator />
+                
+                {regions.map((region) => (
+                  <SelectGroup key={region}>
+                    <SelectLabel>{region}</SelectLabel>
+                    {sitesByRegion[region].map((site) => (
+                      <SelectItem key={site.url} value={site.url}>
+                        {site.name}
+                      </SelectItem>
+                    ))}
+                    {region !== regions[regions.length - 1] && <SelectSeparator />}
+                  </SelectGroup>
                 ))}
               </SelectContent>
             </Select>

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { config } from "@/config/config";
 
 // Use import.meta.env for environment variables with Vite
-const API_BASE_URL = config.api.baseUrl || "https://api.web-scrape-search.dev"; // Fallback to a default API endpoint
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || config.api.baseUrl || "https://api.web-scrape-search.dev"; 
 
 /**
  * Search PDFs through the backend API
@@ -14,6 +14,9 @@ const API_BASE_URL = config.api.baseUrl || "https://api.web-scrape-search.dev"; 
  */
 export const searchPDFsAPI = async (query: string, sites?: string[]): Promise<SearchResult[]> => {
   try {
+    console.log(`Searching with query "${query}" and sites:`, sites);
+    console.log(`Using API endpoint: ${API_BASE_URL}/api/search-icb`);
+    
     // Use real search API
     const response = await fetch(`${API_BASE_URL}/api/search-icb`, {
       method: "POST",
@@ -22,7 +25,7 @@ export const searchPDFsAPI = async (query: string, sites?: string[]): Promise<Se
       },
       body: JSON.stringify({ 
         query,
-        sites,  // Now sending an array of sites
+        sites: sites && sites.length > 0 ? sites : undefined,  // Only send sites if they're provided
         maxResults: 20 // Limit the number of results to improve performance
       }),
     });
@@ -30,13 +33,16 @@ export const searchPDFsAPI = async (query: string, sites?: string[]): Promise<Se
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       const errorMessage = errorData.message || `Server error: ${response.status}`;
+      console.error("API error response:", errorMessage);
       toast.error(errorMessage);
       throw new Error(errorMessage);
     }
 
     const data = await response.json();
+    console.log("API returned data:", data);
     return data.results || []; // Ensure we always return an array, even if results is undefined
   } catch (error) {
+    console.error("Search API error:", error);
     if (error instanceof Error) {
       toast.error(`Search failed: ${error.message}`);
     } else {

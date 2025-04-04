@@ -11,9 +11,9 @@ import { icbSites } from "@/data/icbSites";
  * @param sites Optional array of specific ICB sites to search
  */
 export const searchPDFs = async (query: string, sites?: string[]): Promise<SearchResult[]> => {
-  // Check if we should use mock data (for development/testing)
-  const useMockData = import.meta.env.DEV && 
-                      (import.meta.env.VITE_USE_MOCK_DATA === 'true' || !import.meta.env.VITE_API_BASE_URL);
+  // Force using real API regardless of environment unless explicitly instructed to use mock data
+  // This ensures the app always uses real data by default
+  const useMockData = import.meta.env.VITE_USE_MOCK_DATA === 'true';
   
   try {
     if (useMockData) {
@@ -22,6 +22,7 @@ export const searchPDFs = async (query: string, sites?: string[]): Promise<Searc
     } else {
       // Use real API for production
       try {
+        console.log("Searching with real API using sites:", sites);
         // First try the main API
         const results = await searchPDFsAPI(query, sites);
         

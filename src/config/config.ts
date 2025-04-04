@@ -5,8 +5,8 @@
 export const config = {
   // API configuration
   api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL || '',
-    useMockData: import.meta.env.VITE_USE_MOCK_DATA === 'true',
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://api.web-scrape-search.dev',
+    useMockData: false, // Force real data by default
   },
   
   // Feature flags

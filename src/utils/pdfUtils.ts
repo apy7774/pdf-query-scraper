@@ -12,8 +12,8 @@ import { icbSites } from "@/data/icbSites";
  */
 export const searchPDFs = async (query: string, sites?: string[]): Promise<SearchResult[]> => {
   // Check if we should use mock data (for development/testing)
-  const useMockData = process.env.NODE_ENV === 'development' && 
-                      (process.env.VITE_USE_MOCK_DATA === 'true' || !process.env.VITE_API_BASE_URL);
+  const useMockData = import.meta.env.DEV && 
+                      (import.meta.env.VITE_USE_MOCK_DATA === 'true' || !import.meta.env.VITE_API_BASE_URL);
   
   try {
     if (useMockData) {

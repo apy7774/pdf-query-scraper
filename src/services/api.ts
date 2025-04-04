@@ -3,6 +3,7 @@ import { SearchResult } from "@/types/types";
 import { toast } from "sonner";
 import { config } from "@/config/config";
 
+// Use import.meta.env for environment variables with Vite
 const API_BASE_URL = config.api.baseUrl || "https://api.web-scrape-search.dev"; // Fallback to a default API endpoint
 
 /**
@@ -34,7 +35,7 @@ export const searchPDFsAPI = async (query: string, sites?: string[]): Promise<Se
     }
 
     const data = await response.json();
-    return data.results;
+    return data.results || []; // Ensure we always return an array, even if results is undefined
   } catch (error) {
     if (error instanceof Error) {
       toast.error(`Search failed: ${error.message}`);

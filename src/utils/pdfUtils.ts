@@ -8,9 +8,9 @@ import { icbSites } from "@/data/icbSites";
  * Search PDFs using the backend API
  * Falls back to mock data if API_USE_MOCK_DATA environment variable is set
  * @param query Search query string
- * @param site Optional specific ICB site to search
+ * @param sites Optional array of specific ICB sites to search
  */
-export const searchPDFs = async (query: string, site?: string): Promise<SearchResult[]> => {
+export const searchPDFs = async (query: string, sites?: string[]): Promise<SearchResult[]> => {
   // Check if we should use mock data (for development/testing)
   const useMockData = process.env.NODE_ENV === 'development' && 
                       (process.env.VITE_USE_MOCK_DATA === 'true' || !process.env.VITE_API_BASE_URL);
@@ -18,12 +18,12 @@ export const searchPDFs = async (query: string, site?: string): Promise<SearchRe
   try {
     if (useMockData) {
       // Use mock data for development/testing
-      return await getMockSearchResults(query, site);
+      return await getMockSearchResults(query, sites);
     } else {
       // Use real API for production
       try {
         // First try the main API
-        const results = await searchPDFsAPI(query, site);
+        const results = await searchPDFsAPI(query, sites);
         
         if (results.length > 0) {
           toast.success("Search completed successfully");
@@ -37,7 +37,7 @@ export const searchPDFs = async (query: string, site?: string): Promise<SearchRe
         
         // If main API fails, use the fallback Google search method
         toast.info("Using fallback search method via Google...");
-        return await fallbackSearchUsingGoogle(query, site);
+        return await fallbackSearchUsingGoogle(query, sites);
       }
     }
   } catch (error) {
@@ -47,7 +47,7 @@ export const searchPDFs = async (query: string, site?: string): Promise<SearchRe
 };
 
 // This function handles mock data for development/testing purposes
-const getMockSearchResults = async (query: string, site?: string): Promise<SearchResult[]> => {
+const getMockSearchResults = async (query: string, sites?: string[]): Promise<SearchResult[]> => {
   // Simulate network request delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
@@ -74,9 +74,8 @@ const getMockSearchResults = async (query: string, site?: string): Promise<Searc
     }
   }
   
-  // If a specific site is selected, filter results to only that site
-  // For mock data, we'll simulate this by associating results with random ICB sites
-  if (site) {
+  // If specific sites are selected, filter results to only those sites
+  if (sites && sites.length > 0) {
     // First, ensure each result has a site assigned (for mock data purposes)
     results = results.map(result => {
       if (!result.source.includes('ICB')) {
@@ -90,14 +89,16 @@ const getMockSearchResults = async (query: string, site?: string): Promise<Searc
       return result;
     });
     
-    // Now filter by the selected site
-    const selectedSite = icbSites.find(s => s.url === site);
-    if (selectedSite) {
-      results = results.filter(result => 
-        result.source.includes(selectedSite.name) || 
-        result.url.startsWith(selectedSite.url)
-      );
-    }
+    // Now filter by the selected sites
+    results = results.filter(result => {
+      return sites.some(siteUrl => {
+        const selectedSite = icbSites.find(s => s.url === siteUrl);
+        return selectedSite && (
+          result.source.includes(selectedSite.name) || 
+          result.url.startsWith(selectedSite.url)
+        );
+      });
+    });
   }
   
   return results;

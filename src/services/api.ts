@@ -8,10 +8,10 @@ const API_BASE_URL = config.api.baseUrl || "https://api.web-scrape-search.dev"; 
 /**
  * Search PDFs through the backend API
  * @param query Search query string
- * @param site Optional specific ICB site to search
+ * @param sites Optional array of specific ICB sites to search
  * @returns Promise with search results
  */
-export const searchPDFsAPI = async (query: string, site?: string): Promise<SearchResult[]> => {
+export const searchPDFsAPI = async (query: string, sites?: string[]): Promise<SearchResult[]> => {
   try {
     // Use real search API
     const response = await fetch(`${API_BASE_URL}/api/search-icb`, {
@@ -21,7 +21,7 @@ export const searchPDFsAPI = async (query: string, site?: string): Promise<Searc
       },
       body: JSON.stringify({ 
         query,
-        site,
+        sites,  // Now sending an array of sites
         maxResults: 20 // Limit the number of results to improve performance
       }),
     });
@@ -59,16 +59,18 @@ export const openGoogleSearch = (query: string): void => {
 /**
  * Fallback local search function that searches using Google site: operator
  * @param query Search query string
- * @param site Optional specific ICB site to search
+ * @param sites Optional array of specific ICB sites to search
  * @returns Promise with search results
  */
-export const fallbackSearchUsingGoogle = async (query: string, site?: string): Promise<SearchResult[]> => {
+export const fallbackSearchUsingGoogle = async (query: string, sites?: string[]): Promise<SearchResult[]> => {
   try {
     let searchQuery = query;
     
-    // If a specific site is provided, use Google's site: operator
-    if (site) {
-      searchQuery = `site:${site} ${query}`;
+    // If specific sites are provided, use Google's site: operator
+    if (sites && sites.length > 0) {
+      // Create a search query with site: operators for each selected site
+      const siteQueries = sites.map(site => `site:${site}`).join(" OR ");
+      searchQuery = `(${siteQueries}) ${query}`;
     } else {
       // Search across all ICB sites with a combination of OR operators
       const siteQueries = [

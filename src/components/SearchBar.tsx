@@ -2,19 +2,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SearchIcon, Globe, AlertCircle, Check, X } from "lucide-react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue,
-  SelectGroup,
-  SelectLabel,
-  SelectSeparator
-} from "@/components/ui/select";
+import { SearchIcon, AlertCircle, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { icbSites, getICBSitesByRegion, ICBSite } from "@/data/icbSites";
+import { icbSites, getICBSitesByRegion } from "@/data/icbSites";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   DropdownMenu,
@@ -39,13 +29,6 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
     e.preventDefault();
     if (query.trim()) {
       onSearch(query.trim(), selectedSites.length > 0 ? selectedSites : undefined);
-    }
-  };
-
-  const handleGoogleSearch = () => {
-    if (query.trim()) {
-      // Open Google search in a new tab
-      window.open(`https://www.google.com/search?q=${encodeURIComponent(query.trim())}`, '_blank');
     }
   };
 
@@ -187,24 +170,13 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
             </DropdownMenu>
           </div>
           
-          <div className="flex gap-2">
-            <Button 
-              type="submit" 
-              className="h-12 px-6 bg-blue-700 hover:bg-blue-800"
-              disabled={!query.trim()}
-            >
-              Search ICBs
-            </Button>
-            <Button 
-              type="button" 
-              className="h-12 px-4 bg-green-600 hover:bg-green-700"
-              disabled={!query.trim()}
-              onClick={handleGoogleSearch}
-            >
-              <Globe className="mr-2" size={18} />
-              Google
-            </Button>
-          </div>
+          <Button 
+            type="submit" 
+            className="h-12 px-6 bg-blue-700 hover:bg-blue-800"
+            disabled={!query.trim()}
+          >
+            Search ICBs
+          </Button>
         </div>
         
         <div className="text-xs text-gray-500">

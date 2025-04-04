@@ -10,13 +10,13 @@ interface ResultsListProps {
 }
 
 const ResultsList = ({ results }: ResultsListProps) => {
-  const [sortBy, setSortBy] = useState<"relevance" | "date">("relevance");
+  const [sortBy, setSortBy] = useState<"relevance" | "date">("date");
   
   const sortedResults = [...results].sort((a, b) => {
     if (sortBy === "date") {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     }
-    // Sort by match count (relevance) by default
+    // Sort by match count (relevance) as fallback
     return b.matches.length - a.matches.length;
   });
 

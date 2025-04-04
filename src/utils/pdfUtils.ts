@@ -38,7 +38,8 @@ export const searchPDFs = async (query: string, sites?: string[]): Promise<Searc
         console.error("Error using primary search API:", error);
         
         // If main API fails, use the fallback Google search method
-        toast.info("Using fallback search method via Google...");
+        // This now returns results to the app instead of redirecting
+        toast.info("Using fallback search method...");
         return await fallbackSearchUsingGoogle(query, sites);
       }
     }

@@ -12,9 +12,18 @@ interface ResultsListProps {
 const ResultsList = ({ results }: ResultsListProps) => {
   const [sortBy, setSortBy] = useState<"relevance" | "date">("date");
   
+  // Safely sort results - handle invalid dates and empty arrays
   const sortedResults = [...results].sort((a, b) => {
     if (sortBy === "date") {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      
+      // Handle invalid dates
+      if (isNaN(dateA) && isNaN(dateB)) return 0;
+      if (isNaN(dateA)) return 1;
+      if (isNaN(dateB)) return -1;
+      
+      return dateB - dateA; // Sort by newest first
     }
     // Sort by match count (relevance) as fallback
     return b.matches.length - a.matches.length;

@@ -18,6 +18,10 @@ export const searchPDFsAPI = async (query: string, sites?: string[]): Promise<Se
     console.log(`Searching with query "${query}" and sites:`, sites);
     console.log(`Using API endpoint: ${API_BASE_URL}/api/search-icb`);
     
+    // Add timeout to the fetch request
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
     // Use real search API
     const response = await fetch(`${API_BASE_URL}/api/search-icb`, {
       method: "POST",
@@ -29,7 +33,10 @@ export const searchPDFsAPI = async (query: string, sites?: string[]): Promise<Se
         sites: sites && sites.length > 0 ? sites : undefined,  // Only send sites if they're provided
         maxResults: 20 // Limit the number of results to improve performance
       }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

@@ -6,17 +6,21 @@ import { SearchResult } from "@/types/types";
 import { searchPDFs } from "@/utils/pdfUtils";
 import { Toaster } from "@/components/ui/sonner";
 import { icbSites } from "@/data/icbSites";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Index = () => {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedSites, setSelectedSites] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async (searchQuery: string, sites?: string[]) => {
     setIsLoading(true);
     setQuery(searchQuery);
     setSelectedSites(sites || []);
+    setError(null); // Clear previous errors
     
     try {
       // If sites array is provided, we search in those sites, otherwise search all
@@ -24,6 +28,13 @@ const Index = () => {
       setResults(searchResults);
     } catch (error) {
       console.error("Error searching PDFs:", error);
+      // Display the error instead of falling back to mock data
+      setResults([]);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred. Please try again later.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +72,20 @@ const Index = () => {
           </div>
         ) : (
           <>
-            {query && (
+            {error && (
+              <Alert variant="destructive" className="mt-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                  {error}
+                  <div className="mt-2">
+                    Please check your connection and try again. If the problem persists, the search service may be unavailable.
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {!error && query && (
               <div className="mt-6 mb-4">
                 <h2 className="text-xl font-semibold text-gray-800">
                   {results.length === 0 
@@ -70,6 +94,7 @@ const Index = () => {
                 </h2>
               </div>
             )}
+            
             <ResultsList results={results} />
           </>
         )}
